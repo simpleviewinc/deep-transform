@@ -1,31 +1,11 @@
-import { strictEqual, rejects, deepStrictEqual } from "assert";
+import { deepStrictEqual } from "assert";
 import { execSync } from "child_process";
 import { testArray, TestDef } from "@simpleview/mochalib";
 
 import deepTransform, { DeepMapSchema } from "../deepTransform";
 
-const maybe: DeepMapSchema = {
-	key: ".foo"
-}
-
-const wut: DeepMapSchema = "test";
-
-const testObj = {
-	foo: "fooValue",
-	bar: {
-		nestedBar: {
-			test: 10
-		},
-		baz: "bazValue",
-		arr: ["e", "f", "g"],
-		arrObj: [{ foo: "foo1" }, { foo: "foo2" }, { foo: "foo3" }]
-	},
-	arr: ["a", "b", "c"],
-	numberString: "10"
-}
-
 describe(__filename, function() {
-	describe.only("test array", function() {
+	describe("test array", function() {
 		interface Test {
 			data?: any
 			schema: DeepMapSchema
@@ -36,6 +16,12 @@ describe(__filename, function() {
 			{
 				name: "basic map",
 				args: {
+					data: {
+						foo: "fooValue",
+						bar: {
+							baz: "bazValue"
+						}
+					},
 					schema: {
 						obj: {
 							newFoo: ".foo",
@@ -51,6 +37,9 @@ describe(__filename, function() {
 			{
 				name: "should allow root key returns",
 				args: {
+					data: {
+						foo: "fooValue"
+					},
 					schema: ".foo",
 					result: "fooValue"
 				}
@@ -58,6 +47,9 @@ describe(__filename, function() {
 			{
 				name: "map using 'current.' keys",
 				args: {
+					data: {
+						foo: "fooValue"
+					},
 					schema: {
 						obj: {
 							newFoo: "current.foo"
@@ -69,23 +61,11 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "should map using nested key syntax",
+				name: "should not include a key if data is undefined",
 				args: {
-					schema: {
-						obj: {
-							newFoo: {
-								key: ".foo"
-							}
-						}
+					data: {
+						foo: "fooValue"
 					},
-					result: {
-						newFoo: "fooValue"
-					}
-				}
-			},
-			{
-				name: "should not map a key if undefined",
-				args: {
 					schema: {
 						obj: {
 							newFoo: ".foo",
@@ -100,6 +80,19 @@ describe(__filename, function() {
 			{
 				name: "should access nested objects and arrays",
 				args: {
+					data: {
+						foo: "fooValue",
+						bar: {
+							nestedBar: {
+								test: 10
+							},
+							baz: "bazValue",
+							arr: ["e", "f", "g"],
+							arrObj: [{ foo: "foo1" }, { foo: "foo2" }, { foo: "foo3" }]
+						},
+						arr: ["a", "b", "c"],
+						numberString: "10"
+					},
 					schema: {
 						obj: {
 							newFoo: ".foo",
@@ -125,8 +118,11 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "should allow transforming nested data",
+				name: "should allow returning and transforming nested data",
 				args: {
+					data: {
+						foo: "fooValue"
+					},
 					schema: {
 						obj: {
 							foo: {
@@ -146,6 +142,12 @@ describe(__filename, function() {
 			{
 				name: "should create nested object with current and root data",
 				args: {
+					data: {
+						foo: "fooValue",
+						bar: {
+							baz: "bazValue"
+						}
+					},
 					schema: {
 						obj: {
 							foo: {
@@ -168,17 +170,14 @@ describe(__filename, function() {
 			{
 				name: "should omitEmpty on an object",
 				args: {
+					data: {},
 					schema: {
 						obj: {
-							foo: {
-								obj: {
-									bogus: ".bogus"
-								},
-								omitEmpty: true
-							}
-						}
+							foo: ".bogus"
+						},
+						omitEmpty: true
 					},
-					result: {}
+					result: undefined
 				}
 			},
 			{
@@ -186,16 +185,10 @@ describe(__filename, function() {
 				args: {
 					schema: {
 						obj: {
-							foo: {
-								obj: {
-									bogus: ".bogus"
-								}
-							}
+							foo: ".bogus"
 						}
 					},
-					result: {
-						foo: {}
-					}
+					result: {}
 				}
 			},
 			{
@@ -329,11 +322,7 @@ describe(__filename, function() {
 		]
 
 		testArray(tests, function(test) {
-			const data = test.data ?? testObj;
-
-			const result = deepTransform(data, test.schema);
-
-			console.log("result", result, test.result);
+			const result = deepTransform(test.data, test.schema);
 
 			deepStrictEqual(result, test.result);
 		});
