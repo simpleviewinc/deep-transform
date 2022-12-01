@@ -1,0 +1,32 @@
+version: 2.1
+vars:
+  setup_remote_docker: &setup_remote_docker
+      setup_remote_docker:
+        docker_layer_caching: true
+        version: 20.10.14
+workflows:
+  ci:
+    jobs:
+      - build:
+          context: default
+          filters:
+            branches:
+              only:
+                - develop
+                - master
+                - /pull.*/
+orbs:
+  slack: circleci/slack@4.10.1
+jobs:
+  build:
+    docker:
+      - image: cimg/node:16.16.0
+    steps:
+      # Used to check out source code to the configured path (defaults to the working_directory)
+      - checkout
+      - *setup_remote_docker
+      - run:
+          name: Build
+          command: |
+            docker compose build node_ci
+            docker compose run --rm node_ci yarn test

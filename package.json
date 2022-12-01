@@ -1,0 +1,60 @@
+{
+	"name": "@simpleview/deep-transform",
+	"version": "0.0.1",
+	"description": "Perform complex transformations from one object into another object based on a JSON-declared schema",
+	"exports": {
+		".": {
+			"types": "./dist/types/index.d.ts",
+			"import": "./dist/esm/index.js",
+			"require": "./dist/cjs/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"lodash": "4.17.21"
+	},
+	"devDependencies": {
+		"@simpleview/eslint-config-dms": "0.0.6",
+		"@simpleview/mochalib": "2.0.2",
+		"@tsconfig/node16": "1.0.3",
+		"@types/mocha": "10.0.0",
+		"@types/node": "18.11.9",
+		"@typescript-eslint/eslint-plugin": "5.39.0",
+		"@typescript-eslint/parser": "5.39.0",
+		"eslint": "8.12.0",
+		"eslint-plugin-react": "7.31.1",
+		"eslint-plugin-react-hooks": "4.6.0",
+		"mocha": "10.1.0",
+		"ts-mocha": "10.0.0",
+		"ts-node": "10.9.1",
+		"ts-node-dev": "2.0.0",
+		"typescript": "4.8.3"
+	},
+	"scripts": {
+		"build": "yarn run build:cjs && yarn run build:esm && yarn run build:types",
+		"build:esm": "rm -rf ./dist/esm && tsc --project ./tsconfig.esm.json",
+		"build:cjs": "rm -rf ./dist/cjs && tsc --project ./tsconfig.cjs.json",
+		"build:types": "rm -rf ./dist/types && tsc --project ./tsconfig.types.json",
+		"docker": "./src/scripts/run || true",
+		"publish": "./src/scripts/publish",
+		"style": "eslint .",
+		"style:fix": "eslint . --fix",
+		"sync-state": "bash ./src/scripts/sync-state",
+		"test": "ts-mocha --paths './src/testing/index.test.ts' --timeout 10000",
+		"types": "tsc -p tsconfig.json --noEmit"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/simpleviewinc/deep-transform.git"
+	},
+	"author": "Owen Allen <owenallenaz@gmail.com>",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/simpleviewinc/deep-transform/issues"
+	},
+	"homepage": "https://github.com/simpleviewinc/deep-transform#readme",
+	"packageManager": "yarn@3.2.1",
+	"sideEffects": false
+}
