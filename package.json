@@ -13,6 +13,7 @@
 		"dist"
 	],
 	"dependencies": {
+		"goatee": "1.3.11",
 		"lodash": "4.17.21"
 	},
 	"devDependencies": {

@@ -284,6 +284,47 @@ describe(__filename, function() {
 					},
 					result: [10, 20, 30]
 				}
+			},
+			{
+				name: "should allow goatee templating of keys",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						template: "{{current.foo}} - {{current.bar}}"
+					},
+					result: "fooValue - barValue"
+				}
+			},
+			{
+				name: "conditional appending of (deleted) to a key via template",
+				args: {
+					data: [
+						{ region: "Downtown", region_id: 10, is_deleted: true },
+						{ region: "Central", region_id: 20, is_deleted: false },
+						{ region: "North", region_id: 30, is_deleted: false }
+					],
+					schema: {
+						each: {
+							obj: {
+								label: {
+									template: "{{current.region}}{{:current.is_deleted}} (deleted){{/}}"
+								},
+								value: {
+									key: ".region_id",
+									cast: "string"
+								}
+							}
+						}
+					},
+					result: [
+						{ label: "Downtown (deleted)", value: "10" },
+						{ label: "Central", value: "20" },
+						{ label: "North", value: "30" }
+					]
+				}
 			}
 		]
 
