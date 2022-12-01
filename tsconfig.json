@@ -7,6 +7,6 @@
 		"resolveJsonModule": true,
 		"moduleResolution": "node16"
 	},
-	"exclude": ["node_modules"],
+	"exclude": ["node_modules", "src/testing/**/*", "src/scripts/**/*"],
 	"include": ["src"]
 }
