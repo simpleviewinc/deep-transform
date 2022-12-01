@@ -1,7 +1,7 @@
 {
 	"name": "@simpleview/deep-transform",
 	"version": "0.0.1",
-	"description": "Perform complex transformations from one object into another object based on a JSON-declared schema",
+	"description": "Perform complex transformations to convert one object structure into another object based on a JSON-declared schema",
 	"exports": {
 		".": {
 			"types": "./dist/types/index.d.ts",
