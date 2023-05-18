@@ -1,5 +1,5 @@
 import get from "lodash/get";
-import goatee from "goatee";
+import { fill } from "goatee";
 
 interface DeepMapScopes {
 	current: Record<string, any>
@@ -86,7 +86,7 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 	}
 
 	if (schemaItem.template) {
-		value = goatee.fill(schemaItem.template, scopes);
+		value = fill(schemaItem.template, scopes);
 	}
 
 	if (schemaItem.obj !== undefined) {
