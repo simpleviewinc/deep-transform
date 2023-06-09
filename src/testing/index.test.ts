@@ -196,7 +196,11 @@ describe(__filename, function() {
 				args: {
 					data: {
 						number: 5,
-						numberString: "10"
+						numberString: "10",
+						trueToTrue: "true",
+						falseToFalse: "false",
+						oneToFalse: 1,
+						zeroToFalse: 0
 					},
 					schema: {
 						obj: {
@@ -207,12 +211,32 @@ describe(__filename, function() {
 							numberToString: {
 								key: ".number",
 								cast: "string"
+							},
+							trueToTrue: {
+								key: ".trueToTrue",
+								cast: "booleanString"
+							},
+							falseToFalse: {
+								key: ".falseToFalse",
+								cast: "booleanString"
+							},
+							oneToFalse: {
+								key: ".oneToFalse",
+								cast: "booleanString"
+							},
+							zeroToFalse: {
+								key: ".zeroToFalse",
+								cast: "booleanString"
 							}
 						}
 					},
 					result: {
 						stringToNumber: 10,
-						numberToString: "5"
+						numberToString: "5",
+						trueToTrue: true,
+						falseToFalse: false,
+						oneToFalse: false,
+						zeroToFalse: false
 					}
 				}
 			},

@@ -14,6 +14,8 @@ import transform from "@simpleview/deep-transform";
 
 `deep-transform` is a utility library to convert an object or array of one structure into an entirely different array or object. This is especially useful in scenarios where you want to process the object declaratively via a JSON/Object-style definition and can't write traditional imperative `.map`, `.filter`.
 
+See the typescript signature for `deepTransform` for all arguments and their functionality.
+
 
 Examples:
 
@@ -29,7 +31,7 @@ transform({
 	}
 }) === {
 	newFoo: "fooValue",
-	newBar: "barValue
+	newBar: "barValue"
 }
 
 // Process an object reaching into deeply nested data and arrays

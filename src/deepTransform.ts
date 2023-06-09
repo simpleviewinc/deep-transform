@@ -31,7 +31,7 @@ interface DeepMapSchemaOptions {
 	/**
 	 * Cast the data
 	 */
-	cast?: "string" | "number"
+	cast?: "string" | "number" | "booleanString"
 	/**
 	 * Use a goatee template to generate the return data, when using this format you must pass an explicit scope for each key
 	 * @example
@@ -73,6 +73,8 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 			value = Number(value);
 		} else if (schemaItem.cast === "string") {
 			value = value.toString();
+		} else if (schemaItem.cast === "booleanString") {
+			value = value === "true" ? true : false;
 		}
 	}
 
