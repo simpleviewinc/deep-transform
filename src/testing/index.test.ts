@@ -227,6 +227,10 @@ describe(__filename, function() {
 							zeroToFalse: {
 								key: ".zeroToFalse",
 								cast: "booleanString"
+							},
+							templateValue: {
+								template: "5",
+								cast: "number"
 							}
 						}
 					},
@@ -236,7 +240,8 @@ describe(__filename, function() {
 						trueToTrue: true,
 						falseToFalse: false,
 						oneToFalse: false,
-						zeroToFalse: false
+						zeroToFalse: false,
+						templateValue: 5
 					}
 				}
 			},

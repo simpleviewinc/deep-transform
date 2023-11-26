@@ -10,6 +10,7 @@ interface DeepMapScopes {
 interface DeepMapSchemaOptions {
 	/**
 	 * The locator for determing what key to use to fill this value.
+	 * @default "current"
 	 * @example
 	 * .foo (shorthand for current.foo)
 	 * .foo[0].bar
@@ -71,7 +72,7 @@ export default function deepTransform(obj: any, schema: DeepMapSchema) {
 function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 	let value: any;
 
-	const schemaItem = typeof schema === "string" ? { key: schema } : schema;
+	const schemaItem: DeepMapSchemaOptions = typeof schema === "string" ? { key: schema } : schema;
 
 	const key = !schemaItem.key ? `current`
 		: schemaItem.key.startsWith(".") === true ? `current${schemaItem.key}`
@@ -79,6 +80,28 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 	;
 
 	value = get(scopes, key);
+
+	if (schemaItem.value !== undefined) {
+		value = schemaItem.value;
+	} else if (schemaItem.set !== undefined) {
+		value = processSet(schemaItem.set, scopes);
+	} else if (schemaItem.each !== undefined && value instanceof Array) {
+		const each = schemaItem.each;
+
+		value = value.map(val => processSchema(each, {
+			...scopes,
+			current: val
+		}));
+	} else if (schemaItem.template !== undefined) {
+		value = fill(schemaItem.template, scopes);
+	} else if (schemaItem.obj !== undefined) {
+		const newScopes = {
+			...scopes,
+			current: value
+		}
+
+		value = processSchemaObj(schemaItem.obj, newScopes);
+	}
 
 	if (schemaItem.cast !== undefined && value !== undefined) {
 		if (schemaItem.cast === "number") {
@@ -88,36 +111,6 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 		} else if (schemaItem.cast === "booleanString") {
 			value = value === "true" ? true : false;
 		}
-	}
-
-	if (schemaItem.value !== undefined) {
-		value = schemaItem.value;
-	}
-
-	if (schemaItem.set !== undefined) {
-		value = processSet(schemaItem.set, scopes);
-	}
-
-	if (schemaItem.each !== undefined && value instanceof Array) {
-		const each = schemaItem.each;
-
-		value = value.map(val => processSchema(each, {
-			...scopes,
-			current: val
-		}));
-	}
-
-	if (schemaItem.template) {
-		value = fill(schemaItem.template, scopes);
-	}
-
-	if (schemaItem.obj !== undefined) {
-		const newScopes = {
-			...scopes,
-			current: value
-		}
-
-		value = processSchemaObj(schemaItem.obj, newScopes);
 	}
 
 	if (value !== undefined && schemaItem.omitEmpty === true && Object.keys(value).length === 0) {
