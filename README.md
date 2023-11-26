@@ -110,4 +110,32 @@ transform([
 	{ label: "Central", value: "2" },
 	{ label: "North", value: "3" }
 ]
+
+// Process an object using conditional logic
+var schema = {
+	if: {
+		".account_id": { exists: { value: true } }
+	},
+	then: {
+		set: {
+			"account.match.account_id.eq": ".account_id"
+		}
+	}
+}
+
+transform({
+	account_id: 10
+}, schema) === {
+	account: {
+		match: {
+			account_id: {
+				eq: 10
+			}
+		}
+	}
+}
+
+transform({
+	contact_id: 10
+}, schema) === undefined
 ```
