@@ -2,24 +2,24 @@ import get from "lodash/get";
 import lodashSet from "lodash/set";
 import { fill } from "goatee";
 
-interface DeepMapScopes {
+interface DeepTransformScopes {
 	current: Record<string, any>
 	root: Record<string, any>
 }
 
-interface DeepMapIfOperatorFunc {
-	(scopes: DeepMapScopes): boolean
+interface DeepTransformIfOperatorFunc {
+	(scopes: DeepTransformScopes): boolean
 }
 
-interface DeepMapIfOperatorObj {
-	exists?: DeepMapSchema
-	eq?: DeepMapSchema
-	neq?: DeepMapSchema
+interface DeepTransformIfOperatorObj {
+	exists?: DeepTransformSchema
+	eq?: DeepTransformSchema
+	neq?: DeepTransformSchema
 }
 
-type DeepMapIf = Record<string, DeepMapIfOperatorObj> | DeepMapIfOperatorFunc
+type DeepTransformIf = Record<string, DeepTransformIfOperatorObj> | DeepTransformIfOperatorFunc
 
-interface DeepMapSchemaOptions {
+interface DeepTransformSchemaOptions {
 	/**
 	 * The locator for determing what key to use to fill this value.
 	 * @default "current"
@@ -34,13 +34,13 @@ interface DeepMapSchemaOptions {
 	/**
 	 * Generate an object at this location with the keys assigned to this object
 	*/
-	obj?: DeepMapSchemaObj
+	obj?: DeepTransformSchemaObj
 	/**
 	 * For each key in the object, create a key at the nested location using lodash.set
 	 * @example
 	 * set: { "foo.bar.baz": ".data" } === { foo: { bar: { baz: "value at .data" } }
 	 */
-	set?: DeepMapSet
+	set?: DeepTransformSet
 	/**
 	 * Returns a static value
 	 */
@@ -66,7 +66,7 @@ interface DeepMapSchemaOptions {
 	/**
 	 * Execute a schema on each item in the array
 	 */
-	each?: DeepMapSchema
+	each?: DeepTransformSchema
 	/**
 	 * Conditionally return a transformation based on whether all keys in the if statement return true.
 	 *
@@ -83,37 +83,37 @@ interface DeepMapSchemaOptions {
 	 * // test with an inline function that the value at current.foo === "fooValue"
 	 * (scopes) => scopes.current.foo === "fooValue"
 	*/
-	if?: DeepMapIf
+	if?: DeepTransformIf
 	/**
 	 * If the `if` condition returns true, then it will return the transformation specified here
 	 */
-	then?: DeepMapSchema
+	then?: DeepTransformSchema
 	/**
 	 * If the `if` condition returns false, then it will return the transformation specified here
 	 */
-	else?: DeepMapSchema
+	else?: DeepTransformSchema
 	/**
 	 * If `true` this will log the the arguments at the current stage of the transformation.
 	 */
 	log?: boolean
 }
 
-export type DeepMapSchema = string | DeepMapSchemaOptions
+export type DeepTransformSchema = string | DeepTransformSchemaOptions
 
-type DeepMapSchemaObj = Record<string, DeepMapSchema>
-type DeepMapSet = Record<string, DeepMapSchema>
+type DeepTransformSchemaObj = Record<string, DeepTransformSchema>
+type DeepTransformSet = Record<string, DeepTransformSchema>
 
-export default function deepTransform(obj: any, schema: DeepMapSchema) {
+export default function deepTransform(obj: any, schema: DeepTransformSchema) {
 	return processSchema(schema, {
 		current: obj,
 		root: obj
 	})
 }
 
-function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
+function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes) {
 	let value: any;
 
-	const schemaItem: DeepMapSchemaOptions = typeof schema === "string" ? { key: schema } : schema;
+	const schemaItem: DeepTransformSchemaOptions = typeof schema === "string" ? { key: schema } : schema;
 
 	const key = !schemaItem.key ? `current`
 		: schemaItem.key.startsWith(".") === true ? `current${schemaItem.key}`
@@ -187,7 +187,7 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 	return value;
 }
 
-function processSchemaObj(schemaObj: DeepMapSchemaObj, scopes: DeepMapScopes) {
+function processSchemaObj(schemaObj: DeepTransformSchemaObj, scopes: DeepTransformScopes) {
 	const result = {};
 
 	for (const [key, schema] of Object.entries(schemaObj)) {
@@ -201,7 +201,7 @@ function processSchemaObj(schemaObj: DeepMapSchemaObj, scopes: DeepMapScopes) {
 	return result;
 }
 
-function processIf(obj: DeepMapIf, scopes: DeepMapScopes) {
+function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
 	if (obj instanceof Function) {
 		return obj(scopes);
 	}
@@ -233,7 +233,7 @@ function processIf(obj: DeepMapIf, scopes: DeepMapScopes) {
 	return true;
 }
 
-function processSet(set: DeepMapSet, scopes: DeepMapScopes) {
+function processSet(set: DeepTransformSet, scopes: DeepTransformScopes) {
 	const result = {};
 
 	for (const [path, schema] of Object.entries(set)) {

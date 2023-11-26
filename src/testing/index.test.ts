@@ -2,13 +2,13 @@ import { deepStrictEqual } from "assert";
 import { execSync } from "child_process";
 import { testArray, TestDef } from "@simpleview/mochalib";
 
-import deepTransform, { DeepMapSchema } from "../deepTransform";
+import deepTransform, { DeepTransformSchema } from "../deepTransform";
 
 describe(__filename, function() {
 	describe("test array", function() {
 		interface Test {
 			data?: any
-			schema: DeepMapSchema
+			schema: DeepTransformSchema
 			result: any
 		}
 
