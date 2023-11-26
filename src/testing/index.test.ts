@@ -458,6 +458,351 @@ describe(__filename, function() {
 						}
 					}
 				}
+			},
+			{
+				name: "if statement eq with value using static value and then - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: {
+									value: "fooValue"
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement eq with value using static value and then - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: {
+									value: "bogus"
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement eq with key reference and then - truthy",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: ".bar"
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement eq with key reference and then - falsy",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: ".bar"
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement eq with multiple keys - truthy",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: { value: "fooValue" }
+							},
+							".bar": {
+								eq: { value: "barValue" }
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement eq with multiple keys first false - falsy",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: { value: "bogus" }
+							},
+							".bar": {
+								eq: { value: "barValue" }
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement eq with multiple keys second false - falsy",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: { value: "fooValue" }
+							},
+							".bar": {
+								eq: { value: "bogus" }
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement eq with else - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: { value: "fooValue" }
+							}
+						},
+						else: {
+							value: "fail"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement eq with else - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								eq: { value: "bogus" }
+							}
+						},
+						else: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement exists true - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								exists: {
+									value: true
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement exists true - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".bar": {
+								exists: {
+									value: true
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement exists false - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".bar": {
+								exists: {
+									value: false
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement exists false - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								exists: {
+									value: false
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement neq - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								neq: {
+									value: "barValue"
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement neq - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								neq: {
+									value: "fooValue"
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement function - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: (scopes) => { return scopes.current.foo === "fooValue" },
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement function - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: (scopes) => scopes.current.foo === "barValue",
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
 			}
 		]
 

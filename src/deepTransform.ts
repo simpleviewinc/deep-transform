@@ -7,6 +7,18 @@ interface DeepMapScopes {
 	root: Record<string, any>
 }
 
+interface DeepMapIfOperatorFunc {
+	(scopes: DeepMapScopes): boolean
+}
+
+interface DeepMapIfOperatorObj {
+	exists?: DeepMapSchema
+	eq?: DeepMapSchema
+	neq?: DeepMapSchema
+}
+
+type DeepMapIf = Record<string, DeepMapIfOperatorObj> | DeepMapIfOperatorFunc
+
 interface DeepMapSchemaOptions {
 	/**
 	 * The locator for determing what key to use to fill this value.
@@ -55,6 +67,35 @@ interface DeepMapSchemaOptions {
 	 * Execute a schema on each item in the array
 	 */
 	each?: DeepMapSchema
+	/**
+	 * Conditionally return a transformation based on whether all keys in the if statement return true.
+	 *
+	 * If the condition is true, it will return the value at `then` or undefined.
+	 *
+	 * If the condition is false, it will return the value at `else` or undefined.
+	 * @example
+	 * // test if the value at ".data" === the value at ".bar"
+	 * { ".data": { eq: ".bar" } }
+	 * // test if the value at ".data" === "yes"
+	 * { ".data": { eq: { value: "yes" } } }
+	 * // test if the value at ".data" === the value at ".bar" AND the value at ".another" is not undefined
+	 * { ".data": { eq: ".bar" }, ".another": { exists: { value: true } } }
+	 * // test with an inline function that the value at current.foo === "fooValue"
+	 * (scopes) => scopes.current.foo === "fooValue"
+	*/
+	if?: DeepMapIf
+	/**
+	 * If the `if` condition returns true, then it will return the transformation specified here
+	 */
+	then?: DeepMapSchema
+	/**
+	 * If the `if` condition returns false, then it will return the transformation specified here
+	 */
+	else?: DeepMapSchema
+	/**
+	 * If `true` this will log the the arguments at the current stage of the transformation.
+	 */
+	log?: boolean
 }
 
 export type DeepMapSchema = string | DeepMapSchemaOptions
@@ -79,6 +120,13 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 		: schemaItem.key
 	;
 
+	if (schemaItem.log === true) {
+		console.log("deepTransform log");
+		console.log("schema:", schema);
+		console.log("scopes:", scopes);
+		console.log("key", key);
+	}
+
 	value = get(scopes, key);
 
 	if (schemaItem.value !== undefined) {
@@ -101,6 +149,21 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 		}
 
 		value = processSchemaObj(schemaItem.obj, newScopes);
+	} else if (schemaItem.if !== undefined) {
+		const cond = processIf(schemaItem.if, scopes);
+		if (cond === true) {
+			if (schemaItem.then !== undefined) {
+				value = processSchema(schemaItem.then, scopes);
+			} else {
+				value = undefined;
+			}
+		} else if (cond === false) {
+			if (schemaItem.else !== undefined) {
+				value = processSchema(schemaItem.else, scopes);
+			} else {
+				value = undefined;
+			}
+		}
 	}
 
 	if (schemaItem.cast !== undefined && value !== undefined) {
@@ -136,6 +199,38 @@ function processSchemaObj(schemaObj: DeepMapSchemaObj, scopes: DeepMapScopes) {
 	}
 
 	return result;
+}
+
+function processIf(obj: DeepMapIf, scopes: DeepMapScopes) {
+	if (obj instanceof Function) {
+		return obj(scopes);
+	}
+
+	for (const [key, val] of Object.entries(obj)) {
+		const leftVal = processSchema(key, scopes);
+		if (val.eq !== undefined) {
+			const rightVal = processSchema(val.eq, scopes);
+			if (rightVal !== leftVal) {
+				return false;
+			}
+		} else if (val.exists !== undefined) {
+			const rightVal = processSchema(val.exists, scopes);
+			if (
+				(leftVal === undefined && rightVal === true)
+				||
+				(leftVal !== undefined && rightVal === false)
+			) {
+				return false;
+			}
+		} else if (val.neq !== undefined) {
+			const rightVal = processSchema(val.neq, scopes);
+			if (rightVal === leftVal) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 function processSet(set: DeepMapSet, scopes: DeepMapScopes) {
