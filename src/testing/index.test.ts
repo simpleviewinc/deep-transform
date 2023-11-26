@@ -342,6 +342,117 @@ describe(__filename, function() {
 						{ label: "North", value: "30" }
 					]
 				}
+			},
+			{
+				name: "generating an object with set",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue",
+						nested: {
+							farther: {
+								farthest: "yes"
+							}
+						}
+					},
+					schema: {
+						set: {
+							"fooNew": ".foo",
+							"create.a.very.deep.key": ".bar",
+							"create.b": ".foo",
+							"create.a.bogus.key": ".bogus"
+						}
+					},
+					result: {
+						fooNew: "fooValue",
+						create: {
+							a: {
+								very: {
+									deep: {
+										key: "barValue"
+									}
+								}
+							},
+							b: "fooValue"
+						}
+					}
+				}
+			},
+			{
+				name: "generate an object with set and cast",
+				args: {
+					data: {
+						access: {
+							a: {
+								deep: "10"
+							}
+						}
+					},
+					schema: {
+						set: {
+							"create.a.deep.key": {
+								key: ".access.a.deep",
+								cast: "number"
+							}
+						}
+					},
+					result: {
+						create: {
+							a: {
+								deep: {
+									key: 10
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				name: "return a raw value with a string",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "https://www.google.com/"
+					},
+					schema: {
+						obj: {
+							href: ".bar",
+							type: {
+								value: "drawer"
+							}
+						}
+					},
+					result: {
+						href: "https://www.google.com/",
+						type: "drawer"
+					}
+				}
+			},
+			{
+				name: "return a raw value with a complex object",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						obj: {
+							newFoo: ".foo",
+							bar: {
+								value: {
+									nested: [1,2],
+									something: true
+								}
+							}
+						}
+					},
+					result: {
+						newFoo: "fooValue",
+						bar: {
+							nested: [1, 2],
+							something: true
+						}
+					}
+				}
 			}
 		]
 

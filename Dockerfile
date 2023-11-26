@@ -1,7 +1,7 @@
 FROM node:16.17.0
 
 # install desired version of yarn
-RUN corepack enable && yarn set version 3.2.1
+RUN corepack enable && corepack prepare yarn@3.5.1 --activate
 
 COPY package.json /app/package.json
 COPY .yarn /app/.yarn

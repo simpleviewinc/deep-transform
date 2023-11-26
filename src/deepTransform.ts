@@ -1,4 +1,5 @@
 import get from "lodash/get";
+import lodashSet from "lodash/set";
 import { fill } from "goatee";
 
 interface DeepMapScopes {
@@ -21,6 +22,16 @@ interface DeepMapSchemaOptions {
 	 * Generate an object at this location with the keys assigned to this object
 	*/
 	obj?: DeepMapSchemaObj
+	/**
+	 * For each key in the object, create a key at the nested location using lodash.set
+	 * @example
+	 * set: { "foo.bar.baz": ".data" } === { foo: { bar: { baz: "value at .data" } }
+	 */
+	set?: DeepMapSet
+	/**
+	 * Returns a static value
+	 */
+	value?: any
 	/** If true and the returned object contains no keys, the object itself will be return as undefined rather than {} */
 	omitEmpty?: boolean
 	/** If true and the return array contains an undefined key, it will be filtered out so
@@ -48,6 +59,7 @@ interface DeepMapSchemaOptions {
 export type DeepMapSchema = string | DeepMapSchemaOptions
 
 type DeepMapSchemaObj = Record<string, DeepMapSchema>
+type DeepMapSet = Record<string, DeepMapSchema>
 
 export default function deepTransform(obj: any, schema: DeepMapSchema) {
 	return processSchema(schema, {
@@ -76,6 +88,14 @@ function processSchema(schema: DeepMapSchema, scopes: DeepMapScopes) {
 		} else if (schemaItem.cast === "booleanString") {
 			value = value === "true" ? true : false;
 		}
+	}
+
+	if (schemaItem.value !== undefined) {
+		value = schemaItem.value;
+	}
+
+	if (schemaItem.set !== undefined) {
+		value = processSet(schemaItem.set, scopes);
 	}
 
 	if (schemaItem.each !== undefined && value instanceof Array) {
@@ -119,6 +139,20 @@ function processSchemaObj(schemaObj: DeepMapSchemaObj, scopes: DeepMapScopes) {
 
 		if (value !== undefined) {
 			result[key] = value;
+		}
+	}
+
+	return result;
+}
+
+function processSet(set: DeepMapSet, scopes: DeepMapScopes) {
+	const result = {};
+
+	for (const [path, schema] of Object.entries(set)) {
+		const value = processSchema(schema, scopes);
+
+		if (value !== undefined) {
+			lodashSet(result, path, value);
 		}
 	}
 

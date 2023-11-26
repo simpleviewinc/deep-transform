@@ -18,7 +18,7 @@
 	"devDependencies": {
 		"@simpleview/eslint-config-dms": "0.0.6",
 		"@simpleview/mochalib": "2.0.2",
-		"@tsconfig/node16": "1.0.3",
+		"@tsconfig/node16": "16.1.1",
 		"@types/mocha": "10.0.0",
 		"@types/node": "18.11.9",
 		"@typescript-eslint/eslint-plugin": "5.39.0",
@@ -30,7 +30,7 @@
 		"ts-mocha": "10.0.0",
 		"ts-node": "10.9.1",
 		"ts-node-dev": "2.0.0",
-		"typescript": "4.8.3"
+		"typescript": "5.0.4"
 	},
 	"scripts": {
 		"build": "yarn run build:cjs && yarn run build:types",
@@ -38,6 +38,7 @@
 		"build:cjs": "rm -rf ./dist/cjs && tsc --project ./tsconfig.cjs.json",
 		"build:types": "rm -rf ./dist/types && tsc --project ./tsconfig.types.json",
 		"docker": "./src/scripts/run || true",
+		"install:host": "npm install -f --package-lock false && git checkout yarn.lock",
 		"publish": "./src/scripts/publish",
 		"style": "eslint .",
 		"style:fix": "eslint . --fix",
@@ -55,6 +56,5 @@
 		"url": "https://github.com/simpleviewinc/deep-transform/issues"
 	},
 	"homepage": "https://github.com/simpleviewinc/deep-transform#readme",
-	"packageManager": "yarn@3.2.1",
 	"sideEffects": false
 }
