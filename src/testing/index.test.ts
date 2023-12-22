@@ -1,4 +1,4 @@
-import { deepStrictEqual } from "assert";
+import { deepStrictEqual, throws } from "assert";
 import { execSync } from "child_process";
 import { testArray, TestDef } from "@simpleview/mochalib";
 
@@ -9,7 +9,8 @@ describe(__filename, function() {
 		interface Test {
 			data?: any
 			schema: DeepTransformSchema
-			result: any
+			result?: any
+			error?: string
 		}
 
 		const tests: TestDef<Test>[] = [
@@ -246,7 +247,7 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "convert each entry in root array",
+				name: "each - convert each entry in root array",
 				args: {
 					data: ["10", "20", undefined, "30"],
 					schema: {
@@ -258,7 +259,7 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "should omitUndefined on an array",
+				name: "each - should omitUndefined on an array",
 				args: {
 					data: ["10", "20", undefined, "30"],
 					schema: {
@@ -271,7 +272,7 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "should process array of keys into object",
+				name: "each - should process array of keys into object",
 				args: {
 					data: ["10", "20", "30"],
 					schema: {
@@ -291,7 +292,7 @@ describe(__filename, function() {
 				}
 			},
 			{
-				name: "should process array of objects array of scalar",
+				name: "each - should process array of objects array of scalar",
 				args: {
 					data: [
 						{ value: "10" },
@@ -305,6 +306,39 @@ describe(__filename, function() {
 						}
 					},
 					result: [10, 20, 30]
+				}
+			},
+			{
+				name: "each - Should error if a non-array reaches an 'each' statement.",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						each: {
+							key: ".value",
+							cast: "number"
+						}
+					},
+					error: `Cannot 'each' over an entity that is not an array. Received: {"foo":"fooValue","bar":"barValue"}`
+				}
+			},
+			{
+				name: "each - Should return undefined if key evaluates to undefined.",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						key: ".baz",
+						each: {
+							key: ".value",
+							cast: "number"
+						}
+					},
+					result: undefined
 				}
 			},
 			{
@@ -1017,9 +1051,13 @@ describe(__filename, function() {
 			}
 		]
 
-		testArray(tests, function(test) {
-			const result = deepTransform(test.data, test.schema);
+		testArray<Test>(tests, function(test) {
+			const fn = () => deepTransform(test.data, test.schema);
+			if (test.error !== undefined) {
+				return throws(fn, { message: test.error });
+			}
 
+			const result = fn();
 			deepStrictEqual(result, test.result);
 		});
 	});

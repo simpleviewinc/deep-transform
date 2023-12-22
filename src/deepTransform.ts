@@ -146,13 +146,19 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 		value = schemaItem.value;
 	} else if (schemaItem.set !== undefined) {
 		value = processSet(schemaItem.set, scopes);
-	} else if (schemaItem.each !== undefined && value instanceof Array) {
-		const each = schemaItem.each;
+	} else if (schemaItem.each !== undefined) {
+		if (value !== undefined) {
+			if (value instanceof Array === false) {
+				throw new Error(`Cannot 'each' over an entity that is not an array. Received: ${JSON.stringify(value)}`);
+			}
 
-		value = value.map(val => processSchema(each, {
-			...scopes,
-			current: val
-		}));
+			const each = schemaItem.each;
+
+			value = value.map(val => processSchema(each, {
+				...scopes,
+				current: val
+			}));
+		}
 	} else if (schemaItem.template !== undefined) {
 		value = fill(schemaItem.template, scopes);
 	} else if (schemaItem.obj !== undefined) {
