@@ -806,7 +806,6 @@ describe(__filename, function() {
 			},
 			{
 				name: "if statement in - truthy",
-				only: true,
 				args: {
 					data: {
 						foo: "fooValue"
@@ -828,7 +827,6 @@ describe(__filename, function() {
 			},
 			{
 				name: "if statement in - falsy",
-				only: true,
 				args: {
 					data: {
 						foo: "fooValue"
