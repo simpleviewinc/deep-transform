@@ -2,7 +2,7 @@ import get from "lodash/get";
 import lodashSet from "lodash/set";
 import { fill } from "goatee";
 
-interface DeepTransformScopes {
+export interface DeepTransformScopes {
 	current: Record<string, any>
 	root: Record<string, any>
 }
@@ -19,9 +19,14 @@ interface DeepTransformIfOperatorObj {
 	nin?: DeepTransformSchema
 }
 
-type DeepTransformIf = Record<string, DeepTransformIfOperatorObj> | DeepTransformIfOperatorFunc
+export type DeepTransformIf = Record<string, DeepTransformIfOperatorObj> | DeepTransformIfOperatorFunc
 
-interface DeepTransformSchemaOptions {
+export interface DeepTransformSwitch {
+	if: DeepTransformIf
+	then: DeepTransformSchema
+}
+
+export interface DeepTransformSchemaOptions {
 	/**
 	 * The locator for determing what key to use to fill this value.
 	 * @default "current"
@@ -98,6 +103,12 @@ interface DeepTransformSchemaOptions {
 	 * If `true` this will log the the arguments at the current stage of the transformation.
 	 */
 	log?: boolean
+	/**
+	 * Process an array of statements, the first statement in the array that evaluates to true will return it's `then` clause.
+	 * If no statements in the array match, and no `else` is specified, it will return undefined.
+	 * If no statements in the array match, and an `else` is specified, it will return the evaluation of the else.
+	 */
+	switch?: DeepTransformSwitch[]
 }
 
 export type DeepTransformSchema = string | DeepTransformSchemaOptions
@@ -160,6 +171,30 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 				value = undefined;
 			}
 		} else if (cond === false) {
+			if (schemaItem.else !== undefined) {
+				value = processSchema(schemaItem.else, scopes);
+			} else {
+				value = undefined;
+			}
+		}
+	} else if (schemaItem.switch !== undefined) {
+		let matched = false;
+
+		for (const statement of schemaItem.switch) {
+			const cond = processIf(statement.if, scopes);
+			if (cond === true) {
+				if (statement.then !== undefined) {
+					value = processSchema(statement.then, scopes)
+				} else {
+					value = undefined;
+				}
+
+				matched = true;
+				break;
+			}
+		}
+
+		if (matched === false) {
 			if (schemaItem.else !== undefined) {
 				value = processSchema(schemaItem.else, scopes);
 			} else {

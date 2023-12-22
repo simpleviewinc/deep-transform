@@ -887,6 +887,133 @@ describe(__filename, function() {
 					},
 					result: undefined
 				}
+			},
+			{
+				name: "switch statement first condition",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "fooValue" } } },
+								then: { value: "pass1" }
+							},
+							{
+								if: { ".foo": { eq: { value: "barValue" } } },
+								then: { value: "pass2" }
+							}
+						]
+					},
+					result: "pass1"
+				}
+			},
+			{
+				name: "switch statement second condition",
+				args: {
+					data: {
+						foo: "barValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "fooValue" } } },
+								then: { value: "pass1" }
+							},
+							{
+								if: { ".foo": { eq: { value: "barValue" } } },
+								then: { value: "pass2" }
+							}
+						]
+					},
+					result: "pass2"
+				}
+			},
+			{
+				name: "switch statement no condition, no else",
+				args: {
+					data: {
+						foo: "bazValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "fooValue" } } },
+								then: { value: "pass1" }
+							},
+							{
+								if: { ".foo": { eq: { value: "barValue" } } },
+								then: { value: "pass2" }
+							}
+						]
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "switch statement matching using key",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "fooValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "bogus" } } },
+								then: { value: "pass1" }
+							},
+							{
+								if: { ".foo": { eq: ".bar" } },
+								then: { value: "pass2" }
+							}
+						]
+					},
+					result: "pass2"
+				}
+			},
+			{
+				name: "switch statement fall through to else",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "fooValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "bogus" } } },
+								then: { value: "pass1" }
+							}
+						],
+						else: {
+							value: "pass2"
+						}
+					},
+					result: "pass2"
+				}
+			},
+			{
+				name: "switch statement no fall through to else on match",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "fooValue"
+					},
+					schema: {
+						switch: [
+							{
+								if: { ".foo": { eq: { value: "fooValue" } } },
+								then: { value: "pass1" }
+							}
+						],
+						else: {
+							value: "pass2"
+						}
+					},
+					result: "pass1"
+				}
 			}
 		]
 
