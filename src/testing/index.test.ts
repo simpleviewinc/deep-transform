@@ -803,6 +803,92 @@ describe(__filename, function() {
 					},
 					result: undefined
 				}
+			},
+			{
+				name: "if statement in - truthy",
+				only: true,
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								in: {
+									value: ["fooValue", "barValue"]
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement in - falsy",
+				only: true,
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								in: {
+									value: ["barValue"]
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement nin - truthy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								nin: {
+									value: ["barValue"]
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement in - falsy",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						if: {
+							".foo": {
+								nin: {
+									value: ["fooValue", "barValue"]
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
 			}
 		]
 

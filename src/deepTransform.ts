@@ -15,6 +15,8 @@ interface DeepTransformIfOperatorObj {
 	exists?: DeepTransformSchema
 	eq?: DeepTransformSchema
 	neq?: DeepTransformSchema
+	in?: DeepTransformSchema
+	nin?: DeepTransformSchema
 }
 
 type DeepTransformIf = Record<string, DeepTransformIfOperatorObj> | DeepTransformIfOperatorFunc
@@ -124,7 +126,7 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 		console.log("deepTransform log");
 		console.log("schema:", schema);
 		console.log("scopes:", scopes);
-		console.log("key", key);
+		console.log("key:", key);
 	}
 
 	value = get(scopes, key);
@@ -225,6 +227,16 @@ function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
 		} else if (val.neq !== undefined) {
 			const rightVal = processSchema(val.neq, scopes);
 			if (rightVal === leftVal) {
+				return false;
+			}
+		} else if (val.in !== undefined) {
+			const rightVal = processSchema(val.in, scopes);
+			if (!rightVal.includes(leftVal)) {
+				return false;
+			}
+		} else if (val.nin !== undefined) {
+			const rightVal = processSchema(val.nin, scopes);
+			if (rightVal.includes(leftVal)) {
 				return false;
 			}
 		}
