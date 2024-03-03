@@ -648,6 +648,51 @@ describe(__filename, function() {
 				}
 			},
 			{
+				name: "return a raw value from a function",
+				args: {
+					data: {
+						foo: "fooValue"
+					},
+					schema: {
+						set: {
+							newFoo: ".foo",
+							length: {
+								valueFn: ({ current }) => current.foo.length
+							}
+						}
+					},
+					result: {
+						newFoo: "fooValue",
+						length: 8
+					}
+				}
+			},
+			{
+				name: "return a raw value from a function within an each",
+				args: {
+					data: [
+						{ label: "A" },
+						{ label: "BB" },
+						{ label: "CCC" }
+					],
+					schema: {
+						each: {
+							preservePick: ["label"],
+							set: {
+								length: {
+									valueFn: ({ current }) => current.label.length
+								}
+							}
+						}
+					},
+					result: [
+						{ label: "A", length: 1 },
+						{ label: "BB", length: 2 },
+						{ label: "CCC", length: 3 }
+					]
+				}
+			},
+			{
 				name: "if statement eq with value using static value and then - truthy",
 				args: {
 					data: {

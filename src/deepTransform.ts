@@ -64,6 +64,10 @@ export interface DeepTransformSchemaOptions {
 	 * Returns a static value
 	 */
 	value?: any
+	/**
+	 * Returns the value from an executed function
+	 */
+	valueFn?: (scopes: DeepTransformScopes) => any
 	/** If true and the returned object contains no keys, the object itself will be return as undefined rather than {} */
 	omitEmpty?: boolean
 	/** If true and the return array contains an undefined key, it will be filtered out so
@@ -165,6 +169,8 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 
 	if (schemaItem.value !== undefined) {
 		value = schemaItem.value;
+	} else if (schemaItem.valueFn !== undefined) {
+		value = schemaItem.valueFn(scopes);
 	} else if (schemaItem.set !== undefined) {
 		const newScopes = {
 			...scopes,
