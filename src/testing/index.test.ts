@@ -46,6 +46,24 @@ describe(__filename, function() {
 				}
 			},
 			{
+				name: "should allow key returns via an object with a key",
+				args: {
+					data: {
+						foo: {
+							nested: {
+								bar: "yes"
+							}
+						}
+					},
+					schema: {
+						key: ".foo.nested"
+					},
+					result: {
+						bar: "yes"
+					}
+				}
+			},
+			{
 				name: "map using 'current.' keys",
 				args: {
 					data: {
@@ -190,6 +208,57 @@ describe(__filename, function() {
 						}
 					},
 					result: {}
+				}
+			},
+			{
+				name: "should allow keys to be preserved from the initial data",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: {
+							nested: "nestedValue"
+						}
+					},
+					schema: {
+						preserveData: true,
+						obj: {
+							foo: {
+								template: "prefix: {{current.foo}}"
+							}
+						}
+					},
+					result: {
+						foo: "prefix: fooValue",
+						bar: {
+							nested: "nestedValue"
+						}
+					}
+				}
+			},
+			{
+				name: "should allow keys to be picked from the initial data",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: {
+							nested: "nestedValue"
+						},
+						baz: "bazValue"
+					},
+					schema: {
+						preservePick: ["bar"],
+						obj: {
+							foo: {
+								template: "prefix: {{current.foo}}"
+							}
+						}
+					},
+					result: {
+						foo: "prefix: fooValue",
+						bar: {
+							nested: "nestedValue"
+						}
+					}
 				}
 			},
 			{
@@ -418,6 +487,33 @@ describe(__filename, function() {
 				}
 			},
 			{
+				name: "generate an object with set using a key",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue",
+						nested: {
+							farther: {
+								farthest: "yes"
+							}
+						}
+					},
+					schema: {
+						key: ".nested.farther",
+						set: {
+							"foo.bar.baz": ".farthest"
+						}
+					},
+					result: {
+						foo: {
+							bar: {
+								baz: "yes"
+							}
+						}
+					}
+				}
+			},
+			{
 				name: "generate an object with set and cast",
 				args: {
 					data: {
@@ -441,6 +537,64 @@ describe(__filename, function() {
 								deep: {
 									key: 10
 								}
+							}
+						}
+					}
+				}
+			},
+			{
+				name: "should allow keys to be preserved on set with preserveData",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue",
+						baz: {
+							nested: {
+								another: true
+							}
+						}
+					},
+					schema: {
+						preserveData: true,
+						set: {
+							"baz.nested.foo": ".foo"
+						}
+					},
+					result: {
+						foo: "fooValue",
+						bar: "barValue",
+						baz: {
+							nested: {
+								another: true,
+								foo: "fooValue"
+							}
+						}
+					}
+				}
+			},
+			{
+				name: "should allow keys to be preserved on set with preservePick",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue",
+						baz: {
+							nested: {
+								another: true
+							}
+						}
+					},
+					schema: {
+						preservePick: ["bar"],
+						set: {
+							"baz.nested.foo": ".foo"
+						}
+					},
+					result: {
+						bar: "barValue",
+						baz: {
+							nested: {
+								foo: "fooValue"
 							}
 						}
 					}

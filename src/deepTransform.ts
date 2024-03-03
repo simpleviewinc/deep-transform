@@ -1,5 +1,6 @@
 import get from "lodash/get";
 import lodashSet from "lodash/set";
+import lodashPick from "lodash/pick";
 import { fill } from "goatee";
 
 export interface DeepTransformScopes {
@@ -48,6 +49,17 @@ export interface DeepTransformSchemaOptions {
 	 * set: { "foo.bar.baz": ".data" } === { foo: { bar: { baz: "value at .data" } }
 	 */
 	set?: DeepTransformSet
+	/**
+	 * If `true` it will preserve the existing data returned by the locator onto the returned object declared by `obj` or `set`.
+	 * This allows you to not have to redeclare keys which you are not manipulating.
+	 *
+	 * This preserve is applied before `obj` and `set` are executed, so if the same key is declared in `obj` or `set` it will override the initial value.
+	*/
+	preserveData?: boolean
+	/**
+	 * If specified then it will preserve the data only from the picked columns
+	*/
+	preservePick?: string[]
 	/**
 	 * Returns a static value
 	 */
@@ -104,6 +116,10 @@ export interface DeepTransformSchemaOptions {
 	 */
 	log?: boolean
 	/**
+	 * If `true` this will enable the JS debugger so you can step through deepMap to attempt to diagnose why a given schema is failing.
+	 */
+	debugger?: boolean
+	/**
 	 * Process an array of statements, the first statement in the array that evaluates to true will return it's `then` clause.
 	 * If no statements in the array match, and no `else` is specified, it will return undefined.
 	 * If no statements in the array match, and an `else` is specified, it will return the evaluation of the else.
@@ -140,12 +156,23 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 		console.log("key:", key);
 	}
 
+	if (schemaItem.debugger === true) {
+		// eslint-disable-next-line no-debugger -- Allow debugger to assist in debugging
+		debugger;
+	}
+
 	value = get(scopes, key);
 
 	if (schemaItem.value !== undefined) {
 		value = schemaItem.value;
 	} else if (schemaItem.set !== undefined) {
-		value = processSet(schemaItem.set, scopes);
+		const newScopes = {
+			...scopes,
+			current: value
+		}
+
+		value = initialResult(value, schemaItem);
+		processSet(schemaItem.set, newScopes, value);
 	} else if (schemaItem.each !== undefined) {
 		if (value !== undefined) {
 			if (value instanceof Array === false) {
@@ -167,7 +194,8 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 			current: value
 		}
 
-		value = processSchemaObj(schemaItem.obj, newScopes);
+		value = initialResult(value, schemaItem);
+		processSchemaObj(schemaItem.obj, newScopes, value);
 	} else if (schemaItem.if !== undefined) {
 		const cond = processIf(schemaItem.if, scopes);
 		if (cond === true) {
@@ -230,9 +258,10 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 	return value;
 }
 
-function processSchemaObj(schemaObj: DeepTransformSchemaObj, scopes: DeepTransformScopes) {
-	const result = {};
-
+/**
+ * Adds the obj keys to the result obj
+ */
+function processSchemaObj(schemaObj: DeepTransformSchemaObj, scopes: DeepTransformScopes, result: Record<string, any>) {
 	for (const [key, schema] of Object.entries(schemaObj)) {
 		const value = processSchema(schema, scopes);
 
@@ -240,8 +269,6 @@ function processSchemaObj(schemaObj: DeepTransformSchemaObj, scopes: DeepTransfo
 			result[key] = value;
 		}
 	}
-
-	return result;
 }
 
 function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
@@ -286,9 +313,10 @@ function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
 	return true;
 }
 
-function processSet(set: DeepTransformSet, scopes: DeepTransformScopes) {
-	const result = {};
-
+/**
+ * Adds the set keys to the result obj
+*/
+function processSet(set: DeepTransformSet, scopes: DeepTransformScopes, result: Record<string, any>) {
 	for (const [path, schema] of Object.entries(set)) {
 		const value = processSchema(schema, scopes);
 
@@ -296,6 +324,14 @@ function processSet(set: DeepTransformSet, scopes: DeepTransformScopes) {
 			lodashSet(result, path, value);
 		}
 	}
+}
 
-	return result;
+function initialResult(value: Record<string, any>, schema: DeepTransformSchemaOptions) {
+	if (schema.preserveData) {
+		return { ...value }
+	} else if (schema.preservePick) {
+		return lodashPick(value, schema.preservePick);
+	} else {
+		return {};
+	}
 }
