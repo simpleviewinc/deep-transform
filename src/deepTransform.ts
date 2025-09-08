@@ -18,6 +18,8 @@ interface DeepTransformIfOperatorObj {
 	neq?: DeepTransformSchema
 	in?: DeepTransformSchema
 	nin?: DeepTransformSchema
+	gt?: DeepTransformSchema
+	lt?: DeepTransformSchema
 }
 
 export type DeepTransformIf = Record<string, DeepTransformIfOperatorObj> | DeepTransformIfOperatorFunc
@@ -90,6 +92,10 @@ export interface DeepTransformSchemaOptions {
 	 * Execute a schema on each item in the array
 	 */
 	each?: DeepTransformSchema
+	/**
+	 * Filter an array by running an if statement on each entry in the array, keeps the element if the condition is true
+	*/
+	filter?: DeepTransformIf
 	/**
 	 * Conditionally return a transformation based on whether all keys in the if statement return true.
 	 *
@@ -179,18 +185,28 @@ function processSchema(schema: DeepTransformSchema, scopes: DeepTransformScopes)
 
 		value = initialResult(value, schemaItem);
 		processSet(schemaItem.set, newScopes, value);
-	} else if (schemaItem.each !== undefined) {
+	} else if (schemaItem.each !== undefined || schemaItem.filter !== undefined) {
 		if (value !== undefined) {
-			if (value instanceof Array === false) {
-				throw new Error(`Cannot 'each' over an entity that is not an array. Received: ${JSON.stringify(value)}`);
+			// This ensure that we execute each/filter in the order they appear in the object, allowing both to execute
+			for (const [key, val] of Object.entries(schemaItem)) {
+				if (value instanceof Array === false) {
+					throw new Error(`Cannot '${key}' over an entity that is not an array. Received: ${JSON.stringify(value)}`);
+				}
+
+				if (key === "each") {
+					const each = val as DeepTransformSchema;
+					value = value = value.map(val => processSchema(each, {
+						...scopes,
+						current: val
+					}));
+				} else if (key === "filter") {
+					const filter = val as DeepTransformIf;
+					value = value.filter(val => processIf(filter, {
+						...scopes,
+						current: val
+					}));
+				}
 			}
-
-			const each = schemaItem.each;
-
-			value = value.map(val => processSchema(each, {
-				...scopes,
-				current: val
-			}));
 		}
 	} else if (schemaItem.template !== undefined) {
 		value = fill(schemaItem.template, scopes);
@@ -277,7 +293,7 @@ function processSchemaObj(schemaObj: DeepTransformSchemaObj, scopes: DeepTransfo
 	}
 }
 
-function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
+function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes): boolean {
 	if (obj instanceof Function) {
 		return obj(scopes);
 	}
@@ -311,6 +327,16 @@ function processIf(obj: DeepTransformIf, scopes: DeepTransformScopes) {
 		} else if (val.nin !== undefined) {
 			const rightVal = processSchema(val.nin, scopes);
 			if (rightVal.includes(leftVal)) {
+				return false;
+			}
+		} else if (val.gt !== undefined) {
+			const rightVal = processSchema(val.gt, scopes);
+			if (leftVal > rightVal === false) {
+				return false;
+			}
+		} else if (val.lt !== undefined) {
+			const rightVal = processSchema(val.lt, scopes);
+			if (leftVal < rightVal === false) {
 				return false;
 			}
 		}
