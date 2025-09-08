@@ -211,6 +211,16 @@ describe(__filename, function() {
 				}
 			},
 			{
+				name: "should omitEmpty on an array",
+				args: {
+					data: [],
+					schema: {
+						omitEmpty: true
+					},
+					result: undefined
+				}
+			},
+			{
 				name: "should allow keys to be preserved from the initial data",
 				args: {
 					data: {
@@ -408,6 +418,139 @@ describe(__filename, function() {
 						}
 					},
 					result: undefined
+				}
+			},
+			{
+				name: "filter - should filter an array",
+				args: {
+					data: [
+						{ id: 1, foo: "fooValue" },
+						{ id: 2, foo: "notFoo" },
+						{ id: 3, foo: "fooValue" }
+					],
+					schema: {
+						filter: {
+							".foo": {
+								eq: {
+									value: "fooValue"
+								}
+							}
+						}
+					},
+					result: [
+						{ id: 1, foo: "fooValue" },
+						{ id: 3, foo: "fooValue" }
+					]
+				}
+			},
+			{
+				name: "filter - should filter an empty array",
+				args: {
+					data: [],
+					schema: {
+						filter: {
+							".foo": {
+								eq: {
+									value: "fooValue"
+								}
+							}
+						}
+					},
+					result: []
+				}
+			},
+			{
+				name: "filter - should filter on nested values",
+				args: {
+					data: [
+						{ id: 1, nested: { sharedId: 1 } },
+						{ id: 2, nested: { sharedId: 1 } },
+						{ id: 3, nested: { sharedId: 3 } }
+					],
+					schema: {
+						filter: {
+							".nested.sharedId": {
+								eq: ".id"
+							}
+						}
+					},
+					result: [
+						{ id: 1, nested: { sharedId: 1 } },
+						{ id: 3, nested: { sharedId: 3 } }
+					]
+				}
+			},
+			{
+				name: "filter - Should error if a non-array reaches an 'filter' statement.",
+				args: {
+					data: {
+						foo: "fooValue",
+						bar: "barValue"
+					},
+					schema: {
+						filter: {
+							".foo": {
+								eq: {
+									value: "fooValue"
+								}
+							}
+						}
+					},
+					error: `Cannot 'filter' over an entity that is not an array. Received: {"foo":"fooValue","bar":"barValue"}`
+				}
+			},
+			{
+				name: "filter/each - Should be able to filter and then each",
+				args: {
+					data: [
+						{ title: "fooValue", num: 5 },
+						{ title: "barValue", num: 1 },
+						{ title: "bazValue", num: 3 },
+						{ title: "quxValue", num: 4 }
+					],
+					schema: {
+						filter: {
+							".num": {
+								gt: {
+									value: 3
+								}
+							}
+						},
+						each: {
+							key: ".title"
+						}
+					},
+					result: [
+						"fooValue",
+						"quxValue"
+					]
+				}
+			},
+			{
+				name: "filter/each - Should be able each and then filter",
+				args: {
+					data: [
+						{ nested: { title: "fooValue", num: 5 } },
+						{ nested: { title: "barValue", num: 1 } },
+						{ nested: { title: "bazValue", num: 3 } },
+						{ nested: { title: "quxValue", num: 4 } }
+					],
+					schema: {
+						each: {
+							key: ".nested"
+						},
+						filter: {
+							".num": {
+								gt: {
+									value: 3
+								}
+							}
+						}
+					},
+					result: [
+						{ title: "fooValue", num: 5 },
+						{ title: "quxValue", num: 4 }
+					]
 				}
 			},
 			{
@@ -1111,6 +1254,90 @@ describe(__filename, function() {
 							".foo": {
 								nin: {
 									value: ["fooValue", "barValue"]
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement gt - truthy",
+				args: {
+					data: {
+						foo: 5
+					},
+					schema: {
+						if: {
+							".foo": {
+								gt: {
+									value: 3
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement gt - falsy",
+				args: {
+					data: {
+						foo: 2
+					},
+					schema: {
+						if: {
+							".foo": {
+								gt: {
+									value: 3
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: undefined
+				}
+			},
+			{
+				name: "if statement lt - truthy",
+				args: {
+					data: {
+						foo: 2
+					},
+					schema: {
+						if: {
+							".foo": {
+								lt: {
+									value: 3
+								}
+							}
+						},
+						then: {
+							value: "pass"
+						}
+					},
+					result: "pass"
+				}
+			},
+			{
+				name: "if statement lt - falsy",
+				args: {
+					data: {
+						foo: 5
+					},
+					schema: {
+						if: {
+							".foo": {
+								lt: {
+									value: 3
 								}
 							}
 						},
